@@ -1,5 +1,5 @@
 // Setup
-const input = Bun.file("exampleinput");
+const input = Bun.file("input");
 const lines = (await input.text()).split("\n");
 
 let [startX, startY] = [0, 0];
@@ -20,40 +20,46 @@ const connections: Record<string, string[]> = {
   F: ["b", "r"],
 };
 
+type Direction = "top" | "right" | "bottom" | "left";
+type Character = {
+  char: string;
+  x: number;
+  y: number;
+  origin: Direction;
+};
+
 // Part 1
-function getPath(x: number, y: number) {
-  const [top, right, bottom, left] = [
-    { char: grid?.[y - 1]?.[x], x, y: y - 1 },
-    { char: grid?.[y]?.[x + 1], x: x + 1, y },
-    { char: grid?.[y + 1]?.[x], x, y: y + 1 },
-    { char: grid?.[y]?.[x - 1], x: x - 1, y },
+let count = 0;
+function getPath(x: number, y: number, origin: Direction | null) {
+  const [top, right, bottom, left]: Character[] = [
+    { char: grid?.[y - 1]?.[x], x, y: y - 1, origin: "bottom" },
+    { char: grid?.[y]?.[x + 1], x: x + 1, y, origin: "left" },
+    { char: grid?.[y + 1]?.[x], x, y: y + 1, origin: "top" },
+    { char: grid?.[y]?.[x - 1], x: x - 1, y, origin: "right" },
   ];
 
   const actualDirs = [];
-  if (connections[top.char]?.includes("b")) {
+  if (connections[top.char]?.includes("b") && origin !== "top") {
     actualDirs.push(top);
   }
-  if (connections[right.char]?.includes("l")) {
+  if (connections[right.char]?.includes("l") && origin !== "right") {
     actualDirs.push(right);
   }
-  if (connections[bottom.char]?.includes("t")) {
+  if (connections[bottom.char]?.includes("t") && origin !== "bottom") {
     actualDirs.push(bottom);
   }
-  if (connections[left.char]?.includes("r")) {
+  if (connections[left.char]?.includes("r") && origin !== "left") {
     actualDirs.push(left);
   }
-
+  count += actualDirs.length;
   console.log(actualDirs);
 
   for (const dir of actualDirs) {
-    getPath(dir.x, dir.y);
+    getPath(dir.x, dir.y, dir.origin);
   }
-
-  //   console.log(
-  //     Object.fromEntries(Object.entries(dirs).filter(([, v]) => Boolean(v)))
-  //   );
 }
 
-getPath(startX, startY);
+getPath(startX, startY, null);
+console.log(count);
 
 // Part 2
